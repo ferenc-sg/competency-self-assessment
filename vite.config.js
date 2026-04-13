@@ -5,5 +5,5 @@ import react from "@vitejs/plugin-react";
 // e.g. if your repo is github.com/yourname/my-tool → base: "/my-tool/"
 export default defineConfig({
   plugins: [react()],
-  base: "/sg-assessment/",
+  base: "https://github.com/ferenc-sg/competency-self-assessment",
 });
