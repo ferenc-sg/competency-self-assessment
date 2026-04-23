@@ -210,6 +210,76 @@ const LEVELS = ["IC2", "IC3", "IC4", "IC5"];
 const LEVEL_LABELS = { IC2: "Beginner", IC3: "Proficient", IC4: "Fully proficient", IC5: "Domain expert" };
 const STORAGE_KEY = "sg_cf_accounting_v1";
 
+// ─── CAREER PATH OPTIONS ──────────────────────────────────────────────────────
+const CAREER_PATHS = [
+  {
+    id: "grow_current",
+    label: "Grow within current level",
+    description: "Deepen your expertise, take on more ownership, and become increasingly reliable and impactful in your current role — without changing track.",
+    timeline: "Ongoing · typically 6–18 months before considering a level move",
+    reflectionQuestions: [
+      "Which competencies do I want to strengthen most in the next 6 months?",
+      "Where do I already operate above expectations, and how do I make that more visible?",
+      "What would 'fully proficient' look like for me in my hardest areas?",
+    ],
+  },
+  {
+    id: "advance_level",
+    label: "Advance to next seniority level",
+    description: "Work towards promotion by consistently demonstrating the behaviours and impact expected at the next IC level across general and functional competencies.",
+    timeline: "Typically 12–24 months of sustained demonstration before promotion",
+    reflectionQuestions: [
+      "Which areas show the biggest gap between where I am now and the next level?",
+      "What does my manager think I need to demonstrate to be promotion-ready?",
+      "What specific project or initiative could I use to show next-level impact?",
+    ],
+  },
+  {
+    id: "technical_leadership",
+    label: "Explore technical / functional leadership",
+    description: "Develop deep subject-matter authority and lead through expertise — becoming the go-to person, mentoring others, and shaping how the function operates.",
+    timeline: "6–18 months to build visible domain authority",
+    reflectionQuestions: [
+      "In which areas do colleagues already come to me for guidance?",
+      "What knowledge or skill would make me genuinely the strongest person in the room?",
+      "How could I contribute to standards, documentation, or tooling that others rely on?",
+    ],
+  },
+  {
+    id: "people_management",
+    label: "Explore people management / leadership responsibility",
+    description: "Move towards a management track — taking on direct reports, leading a team, and developing others as a core part of your role.",
+    timeline: "Usually requires 12–24 months of preparation and a suitable opportunity",
+    reflectionQuestions: [
+      "Do I genuinely want to spend significant time developing others rather than doing the work myself?",
+      "Where have I already shown leadership — informal mentoring, running projects, onboarding people?",
+      "What management skills do I need to develop before I'd feel ready?",
+    ],
+  },
+  {
+    id: "internal_mobility",
+    label: "Explore internal mobility / role change",
+    description: "Consider moving to a different team, brand, or function within saas.group — applying your existing skills in a new context or transitioning into an adjacent area.",
+    timeline: "Dependent on availability and fit · worth discussing with your manager now",
+    reflectionQuestions: [
+      "Which other areas of the business interest me most and why?",
+      "What transferable skills do I have that would be valuable elsewhere?",
+      "Is my interest driven by curiosity and growth, or by dissatisfaction with my current situation?",
+    ],
+  },
+  {
+    id: "mentor",
+    label: "Become a mentor for others",
+    description: "Take on a formal or informal mentoring role — helping more junior colleagues grow, sharing knowledge, and contributing to the team beyond your direct responsibilities.",
+    timeline: "Can start immediately · typically a complement to your primary path",
+    reflectionQuestions: [
+      "Who on the team could benefit from my experience or perspective?",
+      "What do I wish someone had shared with me earlier in my career?",
+      "How would mentoring contribute to my own development?",
+    ],
+  },
+];
+
 function IntroScreen({ onStart }) {
   const [name, setName] = useState("");
   const [memberEmail, setMemberEmail] = useState("");
@@ -396,7 +466,81 @@ function CompetencyRadar({ title, results, color }) {
   );
 }
 
-function ResultsScreen({ answers, memberName, memberEmail, onRestart }) {
+// ─── CAREER PATH SELECTOR ─────────────────────────────────────────────────────
+function CareerPathScreen({ selectedPaths, onToggle, onContinue, onBack }) {
+  const [expandedId, setExpandedId] = useState(null);
+  const topRef = useRef(null);
+  useEffect(() => { topRef.current?.scrollIntoView({ behavior: "smooth" }); }, []);
+
+  return (
+    <div ref={topRef} style={{ maxWidth: 620, margin: "0 auto", padding: "40px 20px 56px", fontFamily: F }}>
+      <div style={{ display: "inline-block", fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: BRAND.indigo, background: BRAND.indigoTint, padding: "4px 10px", borderRadius: 4, marginBottom: 14 }}>Career Path</div>
+      <h1 style={{ fontSize: 26, fontWeight: 800, color: BRAND.black, margin: "0 0 10px", fontFamily: F }}>Where do you want to go next?</h1>
+      <p style={{ fontSize: 14, color: "#6B7280", lineHeight: 1.65, margin: "0 0 28px" }}>
+        Select the career path options you'd like to consider for the next 6–12 months. You can choose more than one.
+        These selections are intended to support discussion with your manager — not represent a final decision.
+      </p>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 32 }}>
+        {CAREER_PATHS.map(path => {
+          const selected = selectedPaths.includes(path.id);
+          const expanded = expandedId === path.id;
+          return (
+            <div key={path.id} style={{ border: selected ? "2px solid " + BRAND.indigo : "1.5px solid #E5E7EB", borderRadius: 12, overflow: "hidden", background: selected ? BRAND.indigoTint : "#fff", transition: "border-color 0.15s, background 0.15s" }}>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 14, padding: "14px 16px", cursor: "pointer" }} onClick={() => onToggle(path.id)}>
+                <div style={{ flexShrink: 0, marginTop: 1, width: 20, height: 20, borderRadius: 6, border: selected ? "none" : "2px solid #D1D5DB", background: selected ? BRAND.indigo : "#fff", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.15s" }}>
+                  {selected && <svg width="12" height="10" viewBox="0 0 12 10" fill="none"><path d="M1 5l3.5 3.5L11 1" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: selected ? BRAND.indigo : BRAND.black, lineHeight: 1.4 }}>{path.label}</div>
+                  <div style={{ fontSize: 12.5, color: "#6B7280", marginTop: 3, lineHeight: 1.5 }}>{path.description}</div>
+                </div>
+                <button
+                  onClick={e => { e.stopPropagation(); setExpandedId(expanded ? null : path.id); }}
+                  style={{ flexShrink: 0, marginTop: 1, fontSize: 11, fontWeight: 600, color: selected ? BRAND.indigo : "#6B7280", background: "none", border: "none", cursor: "pointer", padding: "2px 6px", borderRadius: 4, fontFamily: F, whiteSpace: "nowrap" }}>
+                  {expanded ? "Less ▲" : "More ▼"}
+                </button>
+              </div>
+              {expanded && (
+                <div style={{ padding: "0 16px 16px 50px", borderTop: "1px solid " + (selected ? BRAND.indigo + "30" : "#E5E7EB") }}>
+                  <div style={{ paddingTop: 12 }}>
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: selected ? BRAND.indigo + "18" : "#F3F4F6", borderRadius: 6, padding: "4px 10px", marginBottom: 12 }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: selected ? BRAND.indigo : "#6B7280" }}>Timeline</span>
+                      <span style={{ fontSize: 12, color: selected ? BRAND.black : "#374151" }}>{path.timeline}</span>
+                    </div>
+                    <div style={{ fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em", color: "#9CA3AF", marginBottom: 8 }}>Reflection questions</div>
+                    <ul style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 6 }}>
+                      {path.reflectionQuestions.map((q, i) => (
+                        <li key={i} style={{ fontSize: 13, color: "#374151", lineHeight: 1.55 }}>{q}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {selectedPaths.length === 0 && (
+        <div style={{ background: "#FFFBEB", border: "1px solid #FDE68A", borderRadius: 10, padding: "12px 16px", marginBottom: 20, fontSize: 13, color: "#92400E" }}>
+          No paths selected yet. You can still continue — your manager can help you explore options together.
+        </div>
+      )}
+
+      <div style={{ display: "flex", gap: 10 }}>
+        <button onClick={onBack} style={{ padding: "12px 22px", fontSize: 13.5, fontWeight: 600, borderRadius: 10, border: "1px solid #E5E7EB", background: "#fff", color: BRAND.black, cursor: "pointer", fontFamily: F }}>Back</button>
+        <button onClick={onContinue} style={{ flex: 1, padding: "13px 20px", fontSize: 14, fontWeight: 600, borderRadius: 10, border: "none", background: BRAND.indigo, color: "#fff", cursor: "pointer", fontFamily: F }}
+          onMouseEnter={e => (e.currentTarget.style.background = "#5E51A3")}
+          onMouseLeave={e => (e.currentTarget.style.background = BRAND.indigo)}>
+          {selectedPaths.length > 0 ? "Continue with " + selectedPaths.length + " path" + (selectedPaths.length > 1 ? "s" : "") + " selected" : "Continue without selecting"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ResultsScreen({ answers, memberName, memberEmail, onContinueToCareerPath, onRestart }) {
   const [copied, setCopied] = useState(false);
   const [showRestartConfirm, setShowRestartConfirm] = useState(false);
   const topRef = useRef(null);
@@ -583,12 +727,200 @@ function ResultsScreen({ answers, memberName, memberEmail, onRestart }) {
       <Divider label="Part 2 · Accounting functional competencies" />
       {functionalResults.map(r => <ThemeBlock key={r.theme.id} {...r} />)}
 
-      <div style={{ background: BRAND.cinnabarTint, border: "1px solid " + BRAND.cinnabar + "35", borderRadius: 14, padding: "20px 22px", marginTop: 24, marginBottom: 8, fontFamily: F }}>
+      <div style={{ background: BRAND.indigoTint, border: "1px solid " + BRAND.indigo + "35", borderRadius: 14, padding: "20px 22px", marginTop: 24, marginBottom: 8, fontFamily: F }}>
+        <div style={{ fontWeight: 700, color: BRAND.indigo, fontSize: 14, marginBottom: 6 }}>Next: Career Path Selector</div>
+        <div style={{ fontSize: 13, color: "#374151", lineHeight: 1.65, marginBottom: 16 }}>
+          Before exporting your results, take a moment to indicate which career directions you’d like to explore over the next 6–12 months. This will be included in your summary for your manager conversation.
+        </div>
+        <button onClick={onContinueToCareerPath}
+          style={{ width: "100%", padding: "13px 20px", fontSize: 14, fontWeight: 600, borderRadius: 10, border: "none", background: BRAND.indigo, color: "#fff", cursor: "pointer", fontFamily: F }}
+          onMouseEnter={e => (e.currentTarget.style.background = "#5E51A3")}
+          onMouseLeave={e => (e.currentTarget.style.background = BRAND.indigo)}>
+          Continue to Career Path Selector →
+        </button>
+      </div>
+
+      {!showRestartConfirm ? (
+        <button onClick={() => setShowRestartConfirm(true)} style={{ width: "100%", marginTop: 2, padding: "12px 20px", fontSize: 13, fontWeight: 600, borderRadius: 10, border: "1px solid #E5E7EB", background: "#fff", color: "#9CA3AF", cursor: "pointer", fontFamily: F }}>Start over</button>
+      ) : (
+        <div style={{ marginTop: 2, background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: 10, padding: "16px 18px", fontFamily: F }}>
+          <div style={{ fontSize: 13.5, fontWeight: 600, color: "#991B1B", marginBottom: 10 }}>Are you sure? All your answers will be lost.</div>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button onClick={() => setShowRestartConfirm(false)} style={{ flex: 1, padding: "10px", fontSize: 13, fontWeight: 600, borderRadius: 8, border: "1px solid #E5E7EB", background: "#fff", color: "#374151", cursor: "pointer", fontFamily: F }}>Cancel</button>
+            <button onClick={onRestart} style={{ flex: 1, padding: "10px", fontSize: 13, fontWeight: 600, borderRadius: 8, border: "none", background: "#DC2626", color: "#fff", cursor: "pointer", fontFamily: F }}>Yes, start over</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+// ─── EXPORT SCREEN ────────────────────────────────────────────────────────────
+function ExportScreen({ answers, memberName, memberEmail, selectedCareerPaths, onBack, onRestart }) {
+  const [copied, setCopied] = useState(false);
+  const [showRestartConfirm, setShowRestartConfirm] = useState(false);
+  const topRef = useRef(null);
+  useEffect(() => { topRef.current?.scrollIntoView({ behavior: "smooth" }); }, []);
+
+  const lvlNum = { IC2: 2, IC3: 3, IC4: 4, IC5: 5 };
+  const numLvl = { 2: "IC2", 3: "IC3", 4: "IC4", 5: "IC5" };
+  const completedDate = new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+
+  const calcResults = themes => themes.map(theme => {
+    const scores = theme.subdimensions.map(sd => ({ name: sd.name, level: answers[sd.id], num: lvlNum[answers[sd.id]] || 0 }));
+    const avg = scores.reduce((s, r) => s + r.num, 0) / scores.length;
+    return { theme, scores, avg, dominant: numLvl[Math.round(avg)] || "IC3" };
+  });
+  const generalResults = calcResults(GENERAL_THEMES);
+  const functionalResults = calcResults(FUNCTIONAL_THEMES);
+  const generalAvg = generalResults.reduce((s, t) => s + t.avg, 0) / generalResults.length;
+  const functionalAvg = functionalResults.reduce((s, t) => s + t.avg, 0) / functionalResults.length;
+  const overallAvg = (generalAvg + functionalAvg) / 2;
+  const overallLevel = numLvl[Math.round(overallAvg)] || "IC3";
+  const generalLevel = numLvl[Math.round(generalAvg)] || "IC3";
+  const functionalLevel = numLvl[Math.round(functionalAvg)] || "IC3";
+
+  const selectedPathObjects = CAREER_PATHS.filter(p => selectedCareerPaths.includes(p.id));
+
+  const downloadPdf = () => {
+    const sections = [
+      { label: "Part 1 \xb7 General Competencies", results: generalResults },
+      { label: "Part 2 \xb7 Accounting Functional Competencies", results: functionalResults },
+    ];
+    const rows = sections.map(({ label, results }) =>
+      '<tr><td colspan="3" style="-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:14px 16px 8px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#6B7280;background:#F9FAFB;border-top:2px solid #E5E7EB;">' + label + "</td></tr>" +
+      results.flatMap(({ theme, scores, avg, dominant }) =>
+        scores.map((s, i) =>
+          "<tr>" +
+          (i === 0 ? '<td rowspan="' + scores.length + '" style="-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:10px 12px;vertical-align:top;font-weight:700;font-size:11px;color:#fff;background:' + theme.color + ';border-radius:4px;white-space:nowrap;line-height:1.4;">' + (theme.fullName || theme.name) + (scores.length > 1 ? '<div style="font-size:9px;font-weight:500;margin-top:4px;opacity:0.85;">' + dominant + " \xb7 avg " + avg.toFixed(1) + "</div>" : " ") + "</td>" : "") +
+          '<td style="padding:9px 14px;font-size:12.5px;color:#374151;border-bottom:1px solid #F3F4F6;">' + s.name + "</td>" +
+          '<td style="-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:9px 14px;text-align:center;border-bottom:1px solid #F3F4F6;"><span style="display:inline-block;padding:3px 10px;border-radius:20px;background:' + theme.color + ';color:#fff;font-size:11px;font-weight:700;">' + (s.level || "\u2014") + '</span><div style="font-size:10px;color:#9CA3AF;margin-top:2px;">' + (LEVEL_LABELS[s.level] || "") + "</div></td></tr>"
+        )
+      ).join("")
+    ).join("");
+
+    const pathsHtml = selectedPathObjects.length > 0
+      ? '<div style="margin:0 32px 24px;border-top:2px solid #E5E7EB;padding-top:16px;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#6B7280;margin-bottom:12px;">Career Path Interests (6\u201312 months)</div>' +
+        selectedPathObjects.map(p => '<div style="-webkit-print-color-adjust:exact;print-color-adjust:exact;display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;padding:10px 14px;background:' + BRAND.indigoTint + ';border-radius:8px;border:1px solid ' + BRAND.indigo + '30;"><div style="width:8px;height:8px;border-radius:50%;background:' + BRAND.indigo + ';flex-shrink:0;margin-top:4px;"></div><div><div style="font-size:12.5px;font-weight:600;color:' + BRAND.black + '">' + p.label + '</div><div style="font-size:11px;color:#6B7280;margin-top:2px;">' + p.timeline + '</div></div></div>').join("") + "</div>"
+      : '<div style="margin:0 32px 24px;border-top:2px solid #E5E7EB;padding-top:16px;font-size:12px;color:#9CA3AF;">No career paths selected — to be discussed with manager.</div>';
+
+    const html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + memberName + ' \u2014 Self-Assessment</title>' +
+      '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">' +
+      "<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Inter',system-ui,sans-serif;background:#F3F4F6;padding:28px 16px;-webkit-print-color-adjust:exact;print-color-adjust:exact}" +
+      ".wrap{max-width:700px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,0.08)}" +
+      ".hdr{-webkit-print-color-adjust:exact;print-color-adjust:exact;background:" + BRAND.cinnabar + ";padding:24px 32px}" +
+      ".hdr .tag{font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.7);margin-bottom:6px}" +
+      ".hdr h1{font-size:20px;font-weight:700;color:#fff;margin-bottom:4px}.hdr .sub{font-size:12px;color:rgba(255,255,255,0.8)}" +
+      ".sum{display:flex;margin:22px 32px 16px;border-radius:12px;border:1px solid #E5E7EB;overflow:hidden;-webkit-print-color-adjust:exact;print-color-adjust:exact;background:linear-gradient(135deg," + BRAND.cinnabarTint + "," + BRAND.indigoTint + ")}" +
+      ".sum .ov{flex:0 0 36%;text-align:center;padding:18px;border-right:1px solid #E5E7EB}" +
+      ".sum .ov .lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#6B7280;margin-bottom:4px}" +
+      ".sum .ov .lvl{font-size:38px;font-weight:800;color:" + BRAND.black + ";line-height:1}" +
+      ".sum .ov .nm{font-size:12px;color:#374151;font-weight:500;margin-top:3px}.sum .ov .av{font-size:10px;color:#9CA3AF;margin-top:3px}" +
+      ".sum .pts{flex:1;padding:12px;display:flex;flex-direction:column;gap:7px}" +
+      ".sum .pt{background:#fff;border-radius:7px;padding:9px 12px;border:1px solid #E5E7EB}" +
+      ".sum .pt .ptg{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:2px}" +
+      ".sum .pt .pl{font-size:15px;font-weight:800;color:" + BRAND.black + "}.sum .pt .pn{font-size:10px;color:#6B7280;margin-left:4px}" +
+      ".tip{margin:0 32px 14px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;padding:9px 12px;font-size:11.5px;color:#92400E}" +
+      "table{width:calc(100% - 64px);margin:0 32px 24px;border-collapse:collapse;font-size:13px}" +
+      ".ftr{background:#F9FAFB;padding:12px 32px;border-top:1px solid #E5E7EB;font-size:10px;color:#9CA3AF}" +
+      "@media print{body{background:#fff;padding:0}.wrap{box-shadow:none;border-radius:0}.tip{display:none}}</style></head><body>" +
+      '<div class="wrap">' +
+      '<div class="hdr"><div class="tag">Career Framework \xb7 Accounting</div><h1>Self-Assessment Results \u2014 ' + memberName + '</h1><div class="sub">Completed ' + completedDate + "</div></div>" +
+      '<div class="sum"><div class="ov"><div class="lbl">Overall indicative level</div><div class="lvl">' + overallLevel + '</div><div class="nm">' + LEVEL_LABELS[overallLevel] + '</div><div class="av">avg ' + overallAvg.toFixed(1) + "</div></div>" +
+      '<div class="pts"><div class="pt"><div class="ptg" style="-webkit-print-color-adjust:exact;print-color-adjust:exact;color:' + BRAND.cinnabar + ';">Part 1 \xb7 General</div><span class="pl">' + generalLevel + '</span><span class="pn">' + LEVEL_LABELS[generalLevel] + " \xb7 avg " + generalAvg.toFixed(1) + "</span></div>" +
+      '<div class="pt"><div class="ptg" style="-webkit-print-color-adjust:exact;print-color-adjust:exact;color:' + BRAND.indigo + ';">Part 2 \xb7 Accounting</div><span class="pl">' + functionalLevel + '</span><span class="pn">' + LEVEL_LABELS[functionalLevel] + " \xb7 avg " + functionalAvg.toFixed(1) + "</span></div></div></div>" +
+      '<div class="tip">To save as PDF: <strong>File \u2192 Print \u2192 Save as PDF</strong> \xb7 Enable <strong>Background graphics</strong> in print settings to keep colours.</div>' +
+      "<table><tbody>" + rows + "</tbody></table>" +
+      pathsHtml +
+      '<div class="ftr">saas.group \xb7 Career Framework \xb7 Accounting \xb7 ' + completedDate + " \xb7 This is a starting point for your alignment conversation.</div>" +
+      "</div></body></html>";
+
+    const w = window.open("", "_blank");
+    if (!w) return;
+    w.document.write(html);
+    w.document.close();
+    setTimeout(() => w.print(), 700);
+  };
+
+  const buildEmailHtml = () => {
+    const themeRows = results => results.map(({ theme, scores, avg, dominant }) =>
+      '<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:10px;border-radius:10px;overflow:hidden;border:1px solid #E5E7EB;">' +
+      '<tr><td style="background:' + theme.color + ';padding:10px 16px;"><span style="color:#fff;font-weight:700;font-size:13px;">' + (theme.fullName || theme.name) + '</span><span style="color:rgba(255,255,255,0.8);font-size:11px;float:right;padding-top:1px;">' + dominant + " \xb7 avg " + avg.toFixed(1) + "</span></td></tr>" +
+      scores.map(s => '<tr><td style="background:#F9FAFB;padding:8px 16px;border-top:1px solid #E5E7EB;"><span style="font-size:12px;color:#374151;">' + s.name + '</span><span style="float:right;font-size:11px;font-weight:700;color:' + theme.color + ';">' + (s.level || "\u2014") + " \xb7 " + (LEVEL_LABELS[s.level] || "") + "</span></td></tr>").join("") +
+      "</table>"
+    ).join("");
+
+    const pathsSection = selectedPathObjects.length > 0
+      ? '<tr><td style="padding:0 32px 28px;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#9CA3AF;border-top:1px solid #E5E7EB;padding-top:14px;margin-bottom:12px;">Career Path Interests (6\u201312 months)</div>' +
+        selectedPathObjects.map(p =>
+          '<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:8px;border-radius:8px;overflow:hidden;border:1px solid ' + BRAND.indigo + '30;background:' + BRAND.indigoTint + ';"><tr><td style="padding:10px 14px;"><div style="font-size:12.5px;font-weight:600;color:' + BRAND.black + '">' + p.label + '</div><div style="font-size:11px;color:#6B7280;margin-top:2px;">' + p.timeline + '</div></td></tr></table>'
+        ).join("") + "</td></tr>"
+      : '<tr><td style="padding:0 32px 28px;font-size:12px;color:#9CA3AF;border-top:1px solid #E5E7EB;padding-top:14px;">No career paths selected \u2014 to be discussed with manager.</td></tr>';
+
+    return '<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body style="margin:0;padding:0;background:#F3F4F6;font-family:Arial,sans-serif;">' +
+      '<table width="100%" cellpadding="0" cellspacing="0" style="background:#F3F4F6;padding:32px 16px;"><tr><td align="center">' +
+      '<table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">' +
+      '<tr><td style="background:' + BRAND.cinnabar + ';padding:28px 32px;"><div style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.7);margin-bottom:6px;">Career Framework \xb7 Accounting</div><div style="font-size:22px;font-weight:700;color:#fff;margin-bottom:4px;">Self-Assessment Results</div><div style="font-size:13px;color:rgba(255,255,255,0.8);">' + memberName + " \xb7 Completed " + completedDate + "</div></td></tr>" +
+      '<tr><td style="padding:24px 32px 16px;"><table width="100%" cellpadding="0" cellspacing="0" style="background:linear-gradient(135deg,' + BRAND.cinnabarTint + "," + BRAND.indigoTint + ');border-radius:12px;border:1px solid #E5E7EB;"><tr>' +
+      '<td width="38%" style="padding:18px;text-align:center;border-right:1px solid #E5E7EB;"><div style="font-size:10px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:5px;">Overall indicative level</div><div style="font-size:42px;font-weight:800;color:' + BRAND.black + ';line-height:1;">' + overallLevel + '</div><div style="font-size:13px;color:#374151;font-weight:500;margin-top:3px;">' + LEVEL_LABELS[overallLevel] + '</div><div style="font-size:11px;color:#9CA3AF;margin-top:3px;">avg ' + overallAvg.toFixed(1) + "</div></td>" +
+      '<td style="padding:14px 16px;"><div style="background:#fff;border-radius:8px;padding:9px 13px;margin-bottom:7px;border:1px solid #E5E7EB;"><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:' + BRAND.cinnabar + ';margin-bottom:2px;">Part 1 \xb7 General</div><span style="font-size:16px;font-weight:800;color:' + BRAND.black + '">' + generalLevel + '</span><span style="font-size:11px;color:#6B7280;margin-left:5px;">' + LEVEL_LABELS[generalLevel] + " \xb7 avg " + generalAvg.toFixed(1) + "</span></div>" +
+      '<div style="background:#fff;border-radius:8px;padding:9px 13px;border:1px solid #E5E7EB;"><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:' + BRAND.indigo + ';margin-bottom:2px;">Part 2 \xb7 Accounting</div><span style="font-size:16px;font-weight:800;color:' + BRAND.black + '">' + functionalLevel + '</span><span style="font-size:11px;color:#6B7280;margin-left:5px;">' + LEVEL_LABELS[functionalLevel] + " \xb7 avg " + functionalAvg.toFixed(1) + "</span></div></td></tr></table></td></tr>" +
+      '<tr><td style="padding:0 32px 12px;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#9CA3AF;border-top:1px solid #E5E7EB;padding-top:14px;margin-bottom:12px;">Part 1 \xb7 General Competencies</div>' + themeRows(generalResults) + "</td></tr>" +
+      '<tr><td style="padding:0 32px 12px;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#9CA3AF;border-top:1px solid #E5E7EB;padding-top:14px;margin-bottom:12px;">Part 2 \xb7 Accounting Functional Competencies</div>' + themeRows(functionalResults) + "</td></tr>" +
+      pathsSection +
+      '<tr><td style="background:#F9FAFB;padding:12px 32px;border-top:1px solid #E5E7EB;"><div style="font-size:11px;color:#9CA3AF;">saas.group \xb7 Career Framework \xb7 Accounting Job Family \xb7 ' + completedDate + "</div></td></tr>" +
+      "</table></td></tr></table></body></html>";
+  };
+
+  const copyHtmlEmail = async () => {
+    try {
+      await navigator.clipboard.write([new ClipboardItem({ "text/html": new Blob([buildEmailHtml()], { type: "text/html" }) })]);
+      setCopied(true); setTimeout(() => setCopied(false), 4000);
+    } catch {
+      await navigator.clipboard.writeText("Career Framework \u2013 Accounting Self-Assessment\n" + memberName).catch(() => {});
+      setCopied(true); setTimeout(() => setCopied(false), 4000);
+    }
+  };
+
+  return (
+    <div ref={topRef} style={{ maxWidth: 620, margin: "0 auto", padding: "40px 20px 56px", fontFamily: F }}>
+      <div style={{ display: "inline-block", fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: BRAND.cinnabar, background: BRAND.cinnabarTint, padding: "4px 10px", borderRadius: 4, marginBottom: 14 }}>Export</div>
+      <h1 style={{ fontSize: 27, fontWeight: 800, color: BRAND.black, margin: "0 0 4px", fontFamily: F }}>{memberName}'s summary</h1>
+      <p style={{ fontSize: 13, color: "#9CA3AF", margin: "0 0 24px" }}>Completed {completedDate} \xb7 Ready to share with your manager.</p>
+
+      {/* Career paths summary */}
+      {selectedPathObjects.length > 0 && (
+        <div style={{ background: BRAND.indigoTint, border: "1px solid " + BRAND.indigo + "35", borderRadius: 14, padding: "18px 20px", marginBottom: 20 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: BRAND.indigo, marginBottom: 12 }}>Career path interests \xb7 next 6\u201312 months</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {selectedPathObjects.map(p => (
+              <div key={p.id} style={{ display: "flex", alignItems: "flex-start", gap: 10, background: "#fff", borderRadius: 9, padding: "10px 14px", border: "1px solid " + BRAND.indigo + "25" }}>
+                <div style={{ width: 8, height: 8, borderRadius: "50%", background: BRAND.indigo, flexShrink: 0, marginTop: 5 }} />
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: BRAND.black }}>{p.label}</div>
+                  <div style={{ fontSize: 11.5, color: "#6B7280", marginTop: 2 }}>{p.timeline}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <button onClick={onBack} style={{ marginTop: 12, fontSize: 12, fontWeight: 500, color: BRAND.indigo, background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: F }}>
+            ← Edit career path selections
+          </button>
+        </div>
+      )}
+      {selectedPathObjects.length === 0 && (
+        <div style={{ background: "#F9FAFB", border: "1px solid #E5E7EB", borderRadius: 12, padding: "14px 18px", marginBottom: 20, fontSize: 13, color: "#6B7280" }}>
+          No career paths selected. <button onClick={onBack} style={{ fontSize: 13, fontWeight: 600, color: BRAND.indigo, background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: F }}>Add career path selections ←</button>
+        </div>
+      )}
+
+      <div style={{ background: BRAND.cinnabarTint, border: "1px solid " + BRAND.cinnabar + "35", borderRadius: 14, padding: "20px 22px", marginBottom: 8, fontFamily: F }}>
         <div style={{ fontWeight: 700, color: BRAND.cinnabar, fontSize: 14, marginBottom: 6 }}>Share with your manager</div>
-        <div style={{ fontSize: 13, color: "#5A2010", lineHeight: 1.6, marginBottom: 14 }}>Choose how you’d like to share your results:</div>
+        <div style={{ fontSize: 13, color: "#5A2010", lineHeight: 1.6, marginBottom: 14 }}>Choose how you'd like to share your results:</div>
         <div style={{ background: "#fff", border: "1px solid " + BRAND.cinnabar + "30", borderRadius: 10, padding: "14px 16px", marginBottom: 10 }}>
-          <div style={{ fontWeight: 600, fontSize: 13, color: BRAND.black, marginBottom: 4 }}>Option A — Download as PDF</div>
-          <div style={{ fontSize: 12.5, color: "#6B7280", lineHeight: 1.6, marginBottom: 12 }}>Opens a print-ready page. Use <strong>File → Print → Save as PDF</strong> (Cmd+P / Ctrl+P). Enable <strong>Background graphics</strong> in print settings to keep the colours.</div>
+          <div style={{ fontWeight: 600, fontSize: 13, color: BRAND.black, marginBottom: 4 }}>Option A \u2014 Download as PDF</div>
+          <div style={{ fontSize: 12.5, color: "#6B7280", lineHeight: 1.6, marginBottom: 12 }}>Opens a print-ready page. Use <strong>File \u2192 Print \u2192 Save as PDF</strong> (Cmd+P / Ctrl+P). Enable <strong>Background graphics</strong> in print settings to keep the colours.</div>
           <button onClick={downloadPdf} style={{ width: "100%", padding: "11px 16px", fontSize: 13.5, fontWeight: 600, borderRadius: 9, border: "none", background: BRAND.cinnabar, color: "#fff", cursor: "pointer", fontFamily: F }}
             onMouseEnter={e => (e.currentTarget.style.background = BRAND.cinnabarDark)}
             onMouseLeave={e => (e.currentTarget.style.background = BRAND.cinnabar)}>
@@ -596,7 +928,7 @@ function ResultsScreen({ answers, memberName, memberEmail, onRestart }) {
           </button>
         </div>
         <div style={{ background: "#fff", border: "1px solid " + BRAND.cinnabar + "30", borderRadius: 10, padding: "14px 16px" }}>
-          <div style={{ fontWeight: 600, fontSize: 13, color: BRAND.black, marginBottom: 4 }}>Option B — Copy formatted email</div>
+          <div style={{ fontWeight: 600, fontSize: 13, color: BRAND.black, marginBottom: 4 }}>Option B \u2014 Copy formatted email</div>
           <div style={{ fontSize: 12.5, color: "#6B7280", lineHeight: 1.6, marginBottom: 8 }}>Copies a fully formatted HTML email to your clipboard. Then:</div>
           <ol style={{ margin: "0 0 12px", paddingLeft: 18, fontSize: 12.5, color: "#5A2010", lineHeight: 1.9 }}>
             <li>Open a <strong>new email</strong> in Gmail or Outlook</li>
@@ -608,7 +940,7 @@ function ResultsScreen({ answers, memberName, memberEmail, onRestart }) {
             style={{ width: "100%", padding: "11px 16px", fontSize: 13.5, fontWeight: 600, borderRadius: 9, border: "none", background: copied ? "#16A34A" : BRAND.indigo, color: "#fff", cursor: "pointer", transition: "background 0.25s", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, fontFamily: F }}
             onMouseEnter={e => { if (!copied) e.currentTarget.style.background = "#5E51A3"; }}
             onMouseLeave={e => { if (!copied) e.currentTarget.style.background = copied ? "#16A34A" : BRAND.indigo; }}>
-            {copied ? "✓ Copied! Open a new email and paste" : "📋 Copy email"}
+            {copied ? "\u2713 Copied! Open a new email and paste" : "\U0001F4CB Copy email"}
           </button>
         </div>
       </div>
@@ -634,6 +966,7 @@ export default function App() {
   const [answers, setAnswers] = useState({});
   const [memberName, setMemberName] = useState("");
   const [memberEmail, setMemberEmail] = useState("");
+  const [selectedCareerPaths, setSelectedCareerPaths] = useState([]);
 
   const generalQ = GENERAL_THEMES.flatMap(t => t.subdimensions.map(sd => ({ theme: t, subdimension: sd, phase: "general" })));
   const functionalQ = FUNCTIONAL_THEMES.flatMap(t => t.subdimensions.map(sd => ({ theme: t, subdimension: sd, phase: "functional" })));
@@ -642,13 +975,17 @@ export default function App() {
   useEffect(() => {
     try {
       const s = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
-      if (s.screen && s.screen !== "intro") { setScreen(s.screen); setQIdx(s.qIdx || 0); setAnswers(s.answers || {}); setMemberName(s.memberName || ""); setMemberEmail(s.memberEmail || ""); }
+      if (s.screen && s.screen !== "intro") {
+        setScreen(s.screen); setQIdx(s.qIdx || 0); setAnswers(s.answers || {});
+        setMemberName(s.memberName || ""); setMemberEmail(s.memberEmail || "");
+        setSelectedCareerPaths(s.selectedCareerPaths || []);
+      }
     } catch {}
   }, []);
 
   useEffect(() => {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ screen, qIdx, answers, memberName, memberEmail })); } catch {}
-  }, [screen, qIdx, answers, memberName, memberEmail]);
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ screen, qIdx, answers, memberName, memberEmail, selectedCareerPaths })); } catch {}
+  }, [screen, qIdx, answers, memberName, memberEmail, selectedCareerPaths]);
 
   const select = lv => setAnswers(p => ({ ...p, [allQ[qIdx].subdimension.id]: lv }));
   const next = () => {
@@ -658,15 +995,18 @@ export default function App() {
   };
   const prev = () => { if (qIdx > 0) setQIdx(i => i - 1); };
   const continueToFunctional = () => { setQIdx(generalQ.length); setScreen("questions"); };
+  const toggleCareerPath = id => setSelectedCareerPaths(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
   const restart = () => {
-    setScreen("intro"); setQIdx(0); setAnswers({}); setMemberName(""); setMemberEmail("");
+    setScreen("intro"); setQIdx(0); setAnswers({}); setMemberName(""); setMemberEmail(""); setSelectedCareerPaths([]);
     try { localStorage.removeItem(STORAGE_KEY); } catch {}
   };
   const handleStart = (name, email) => { setMemberName(name); setMemberEmail(email); setScreen("questions"); };
 
   if (screen === "intro") return <IntroScreen onStart={handleStart} />;
   if (screen === "transition") return <PhaseTransitionScreen onContinue={continueToFunctional} />;
-  if (screen === "results") return <ResultsScreen answers={answers} memberName={memberName} memberEmail={memberEmail} onRestart={restart} />;
+  if (screen === "results") return <ResultsScreen answers={answers} memberName={memberName} memberEmail={memberEmail} onContinueToCareerPath={() => setScreen("careerpath")} onRestart={restart} />;
+  if (screen === "careerpath") return <CareerPathScreen selectedPaths={selectedCareerPaths} onToggle={toggleCareerPath} onContinue={() => setScreen("export")} onBack={() => setScreen("results")} />;
+  if (screen === "export") return <ExportScreen answers={answers} memberName={memberName} memberEmail={memberEmail} selectedCareerPaths={selectedCareerPaths} onBack={() => setScreen("careerpath")} onRestart={restart} />;
 
   const q = allQ[qIdx];
   const isGeneral = q.phase === "general";
